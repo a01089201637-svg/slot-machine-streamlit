@@ -18,6 +18,16 @@ if "symbol_probs" not in st.session_state:
 if "jackpot_probs" not in st.session_state:
     st.session_state.jackpot_probs = [0.05] * 6  # 기본 5% 잭팟 확률
 
+default_values = {
+    "tokens": 100,
+    "bet": 10,
+    "win_multiplier": 1000,      # 일반 당첨 배율
+    "jackpot_multiplier": 10000  # 잭팟 배율
+}
+for key, value in default_values.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
+
 
 # ---------------- 슬롯머신 한 번 돌리기 ----------------
 def spin_slot():
@@ -73,7 +83,7 @@ if st.button("🎲 슬롯 돌리기", use_container_width=True):
     st.session_state.last_result = result
 
 
-# 잭팟 여부 판별
+    # 잭팟 여부 판별
     def check_jackpot(res):
         return len(set(res)) == 1 and res[0] == "🎲"
 
@@ -82,10 +92,10 @@ if st.button("🎲 슬롯 돌리기", use_container_width=True):
         return len(set(res)) == 1
 
     if check_jackpot(result):
-        reward = bet * 10000
+        reward = bet * st.session_state.jackpot_multiplier
         st.success(f"🎉 JACKPOT! {reward}포인트 획득!")
     elif check_win(result):
-        reward = bet * 1000
+        reward = bet * st.session_state.win_multiplier
         st.success(f"🎯 당첨! {reward}포인트 획득!")
     else:
         reward = -bet
@@ -99,6 +109,20 @@ with tab_settings:
     st.session_state.game_message = st.text_area(
         "게임 안내 문구",
         value=st.session_state.game_message
+    )
+
+    st.subheader("⚙ 배율 설정")
+    st.session_state.win_multiplier = st.number_input(
+        "🎯 일반 당첨 배율",
+        min_value=1,
+        value=st.session_state.win_multiplier,
+        step=10
+    )
+    st.session_state.jackpot_multiplier = st.number_input(
+        "🎉 잭팟 배율",
+        min_value=1,
+        value=st.session_state.jackpot_multiplier,
+        step=100
     )
 
     st.subheader("🎨 심볼 & 확률 설정")
@@ -156,5 +180,4 @@ with tab_settings:
             st.success("✅ 설정이 저장되었습니다.")
         else:
             st.error("❌ 등장 확률 합이 100이 아닙니다. 수정 후 저장하세요.")
-
 
